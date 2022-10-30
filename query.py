@@ -17,7 +17,7 @@ class DataBase(Graph):
         self.last_selection = []
         self.env_variables = {
             "MAX_RESULTS_SHOWN": 10,
-            "MIN_VALUE_LENGTH_SHOWN": 20,
+            "MIN_VALUE_LENGTH_SHOWN": 17,
         }
         self.defined_clauses = [
             "SELECT",
@@ -43,15 +43,23 @@ class DataBase(Graph):
         elif clause == 'clauses':
             print(*self.defined_clauses, sep = "\n")
 
+    def load_from_csv(self, csv: str) -> None:
+        for line in csv.splitlines():
+            line = line.strip()
+            if line == '':
+                continue
+            raw_row = line.split(",")
+            row = [value.strip() for value in raw_row]
+            self.insert(*row)
+
     def query(self, query: str) -> None:
-        query = query.lower()
         printing = query.endswith(';')
         if printing:
             query = query[:-1]
         query = query.split()
         if len(query) == 0:
             return
-        instruction = query[0]
+        instruction = query[0].lower()
 
         try:
             if instruction == 'exit':
@@ -112,11 +120,13 @@ class DataBase(Graph):
             self.where_clause = False
             results_shown = min(len(result), self.env_variables["MAX_RESULTS_SHOWN"])
             for index in range(results_shown):
-                row_str = result[index].value.str_justed_by(
+                row_node: Node = result[index]
+                raw_row: Row = row_node.value
+                row_str = raw_row.str_justed_by(
                     self.env_variables["MIN_VALUE_LENGTH_SHOWN"])
                 row = row_str.replace("'", "")
                 
-                print(f"{index}: {row[1:-1]}".replace('"', "'"))
+                print(f"{index}: {row}".replace('"', "'").strip())
             results_shown_text = f"{results_shown} results shown"
             results_hidden_text = f"{len(result) - results_shown} results hidden"
             print(max(len(results_shown_text), len(results_hidden_text)) * "-")
@@ -158,7 +168,12 @@ class DataBase(Graph):
 
             value_1 = numberize(value_1)
             value_2 = numberize(value_2)
-            
+
+            if type(value_1) == str:
+                value_1 = value_1.strip().strip("'").strip('"')
+            if type(value_2) == str:
+                value_2 = value_2.strip().strip("'").strip('"')
+
             try:
                 if operation == '=':
                     if value_1 == value_2:
@@ -192,19 +207,23 @@ class Row(LinkedList):
             arg = numberize(arg)
             if type(arg) == str:
                 if "\"" in arg or "\'" in arg:
-                    arg = arg.replace("'", "").replace('"', '')
+                    arg: str = arg.replace("'", "").replace('"', '')
                 else:
                     continue
             self.append(arg)
 
-    def str_justed_by(self, value) -> str:
-        results = self.iter(
-            (lambda node, index: repr(node.value).ljust(value).replace("'", '"')),
-            (lambda node, node_index: False)
-        )
-        result = str(results)
+    def __str__(self) -> str:
+        result =  super().__str__()
         return result.replace(",", " |").replace("[", "").replace("]", "")
 
     @property
     def root(self) -> Node:
         return self.head
+
+    def str_justed_by(self, value) -> str:
+        results = self.iter(
+            (lambda node, index: repr(node.value).ljust(value).replace("'", '"')),
+            (lambda node, index: False)
+        )
+        result = str(results)
+        return result.replace(",", " |").replace("[", "").replace("]", "")

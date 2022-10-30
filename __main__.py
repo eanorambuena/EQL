@@ -1,20 +1,19 @@
 from query import DataBase
 
 if __name__ == '__main__':
-    db = DataBase()
-    csv = """
-'12344567-8','Miguel',45,3000,'03-24-1977'
-'20575479-3','Estefania',22,1200,'07-15-2000'
-'10005633-1','Carlos',57,2000,'01-01-1965'
-'22487682-4','Dominga',18,234,'12-12-2004'"""
+    import codecs
+    import csv
+    import urllib.request
+    
+    url = 'http://winterolympicsmedals.com/medals.csv'
+    ftpstream = urllib.request.urlopen(url)
+    csvfile = csv.reader(codecs.iterdecode(ftpstream, 'utf-8'))
+    csv_content = ""
+    for line in csvfile:
+        csv_content += ",".join([value.strip() for value in str(line)[1:-1].split(",")]) + "\n"
 
-    for line in csv.splitlines():
-        line = line.strip()
-        if line == '':
-            continue
-        raw_row = line.split(",")
-        row = [value.strip() for value in raw_row]
-        db.insert(*row)
+    db = DataBase()
+    db.load_from_csv(csv_content)
         
     while True:
         db.query(input(">>> "))
