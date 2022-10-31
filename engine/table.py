@@ -157,6 +157,7 @@ class DataTable(Graph):
         if variable.upper() in self.env_variables:
             value = numberize(value)
             self.env_variables[variable.upper()] = value
+            print(f"ENV {variable.upper()} <- {value}")
 
     def template(self, *args) -> None:
         self.root.value = DataRow(*args)

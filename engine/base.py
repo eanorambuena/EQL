@@ -4,6 +4,7 @@ from types import NoneType
 import core.error as error
 from core.graph import Graph
 from core.node import Node
+from engine.row import DataRow
 from engine.table import DataTable
 
 
@@ -23,6 +24,7 @@ class DataBase(Graph):
             "EXIT",
             "CLAUSES",
             "LET",
+            "GET",
             ";;" # Print last selection
         ] + self.root.value.defined_clauses))
         self.defined_clauses.sort()
@@ -74,7 +76,7 @@ class DataBase(Graph):
             elif instruction == "let":
                 if query[2] != "*":
                     self.global_variables[query[1].upper()] = query[2]
-                    print(f"{query[1].upper()} <- {query[2]}")
+                    print(f"GLOBAL {query[1].upper()} <- {query[2]}")
                 elif self.current_table is None:
                     print("No table selected")
                 else:
@@ -82,6 +84,30 @@ class DataBase(Graph):
                     print(f"{query[1].upper()} <- (")
                     self.current_table.print_results(self.current_table.last_selection, 1)
                     print(")")
+
+            elif instruction == "get":
+                if self.current_table is not None:
+                    if query[1].upper() in self.current_table.env_variables:
+                        result = self.current_table.env_variables[query[1].upper()]
+                        print(f"ENV {query[1].upper()} ->", end = " ")
+                    elif query[1].upper() in self.global_variables:
+                        result = self.global_variables[query[1].upper()]
+                        print(f"GLOBALS {query[1].upper()} ->", end = " ")
+
+                    self.current_table.last_selection = [Node(DataRow(
+                        f"'{query[1].upper()}'", f"'{result}'"))]
+
+                    if type(result) == list and len(result) > 0 and type(result[0]) == Node \
+                            and type(result[0].value) == DataRow:
+                        print("(")
+                        self.current_table.print_results(result, 1)
+                        print(")")
+                    else:
+                        print(result)
+
+                elif query[1].upper() in self.global_variables: 
+                        print(f"GLOBAL {query[1].upper()} ->",
+                            f"{self.global_variables[query[1].upper()]}")
                 
             elif instruction.upper() in self.defined_clauses:
                 self.redirect_query(" ".join(query))
