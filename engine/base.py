@@ -1,4 +1,4 @@
-import sys
+import pickle, sys
 from types import NoneType
 
 import core.error as error
@@ -49,6 +49,10 @@ class DataBase(Graph):
         else:
             self.current_table.query(query)
 
+    def save(self, path) -> None:
+        with open(path, "wb") as file:
+            pickle.dump(self, file)
+
     def query(self, query: str) -> None:
         if len(query) == 0:
             return
@@ -57,6 +61,7 @@ class DataBase(Graph):
         instruction = query[0].lower()
         try:
             if instruction == 'exit':
+                self.save("database.edb")
                 sys.exit()
 
             elif instruction == "checkout":
@@ -92,7 +97,7 @@ class DataBase(Graph):
                         print(f"ENV {query[1].upper()} ->", end = " ")
                     elif query[1].upper() in self.global_variables:
                         result = self.global_variables[query[1].upper()]
-                        print(f"GLOBALS {query[1].upper()} ->", end = " ")
+                        print(f"GLOBAL {query[1].upper()} ->", end = " ")
 
                     self.current_table.last_selection = [Node(DataRow(
                         f"'{query[1].upper()}'", f"'{result}'"))]

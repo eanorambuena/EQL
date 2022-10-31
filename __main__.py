@@ -3,6 +3,7 @@ from engine.base import DataBase
 if __name__ == '__main__':
     import codecs
     import csv
+    import pickle
     import urllib.request
     
     url = 'http://winterolympicsmedals.com/medals.csv'
@@ -25,5 +26,16 @@ if __name__ == '__main__':
     medals.load_from_csv(csv_content)
     medals.template(*template)
         
+    while True:
+        _input = input(">>> ")
+        if _input.lower() == "exit":
+            db.save("example_data/database.edb")
+            break
+        db.query(_input)
+
+    print("End")
+
+    with open("example_data/database.edb", "rb") as file:
+        db: DataBase = pickle.load(file)
     while True:
         db.query(input(">>> "))
