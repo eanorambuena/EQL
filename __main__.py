@@ -1,4 +1,4 @@
-from query import DataBase
+from engine.base import DataBase
 
 if __name__ == '__main__':
     import codecs
@@ -20,8 +20,10 @@ if __name__ == '__main__':
         count += 1
 
     db = DataBase()
-    db.load_from_csv(csv_content)
-    db.template(*template)
+    db.create_table("medals")
+    medals = db.use_table("medals")
+    medals.load_from_csv(csv_content)
+    medals.template(*template)
         
     while True:
         db.query(input(">>> "))

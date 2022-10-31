@@ -6,7 +6,7 @@ class IdError(Exception):
         return f"Node with id {self.id} not found in graph"
  
 
-class ClauseErrorMessage():
+class ClauseSyntaxErrorMessage():
     def __init__(self, clause: str, instruction: str) -> None:
         self.clause = clause.upper()
         self.instruction = instruction.upper()
@@ -25,3 +25,11 @@ class TypeErrorMessage():
 
     def __str__(self) -> str:
         return f"{self.value_1} {self.operation} {self.value_2} is not a valid operation"
+
+
+class UndefinedClauseErrorMessage(Exception):
+    def __init__(self, clause: str) -> None:
+        print("UndefinedClauseError:", self, clause.upper())
+
+    def __str__(self) -> str:
+        return f"Undefined clause"

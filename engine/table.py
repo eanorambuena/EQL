@@ -1,17 +1,18 @@
 import sys
 
-from core import error
+import core.error as error
 from core.graph import Graph
-from core.linked_list import LinkedList
 from core.node import Node
 from core.utils import numberize
+from engine.row import DataRow
 
 
-class DataBase(Graph):
+class DataTable(Graph):
 
-    def __init__(self) -> None:
+    def __init__(self, name = "MainTable") -> None:
         super().__init__()
-        self.root = Node(Row())
+        self.name = name
+        self.root = Node(DataRow())
         self.preparing_insert = False
         self.where_clause = False
         self.last_selection = []
@@ -30,18 +31,20 @@ class DataBase(Graph):
             "VALUES",
             "ENV",
             "CLAUSES",
-            "SET"
+            "SET",
         ]
         self.defined_clauses.sort()
 
     def insert(self, *args) -> None:
-        self.append(1, Row(*args))
+        self.append(self.root.id, DataRow(*args))
 
     def list(self, clause: str) -> None:
         if clause == 'env':
             print(*list(self.env_variables.keys()), sep = "\n")
         elif clause == 'clauses':
             print(*self.defined_clauses, sep = "\n")
+        else:
+            error.UndefinedClauseErrorMessage(clause)
 
     def load_from_csv(self, csv: str) -> None:
         for line in csv.splitlines():
@@ -51,6 +54,23 @@ class DataBase(Graph):
             raw_row = line.split(",")
             row = [value.strip() for value in raw_row]
             self.insert(*row)
+
+    def print_results(self, results: list, identation_level: int = 0) -> None:
+        identation = identation_level * "    "
+        results_shown = min(len(results), self.env_variables["MAX_RESULTS_SHOWN"])
+        for index in range(results_shown):
+            row_node: Node = results[index]
+            raw_row: DataRow = row_node.value
+            row_str = raw_row.str_justed_by(
+                self.env_variables["MIN_VALUE_LENGTH_SHOWN"])
+            row = row_str.replace("'", "")
+            print(identation + f"{index}: {row}".replace('"', "'").strip())
+        results_shown_text = f"{results_shown} results shown"
+        results_hidden_text = f"{len(results) - results_shown} results hidden"
+        print(identation + max(len(results_shown_text), len(results_hidden_text)) * "-")
+        print(identation + results_shown_text)
+        if len(results) > results_shown:
+            print(identation + results_hidden_text)
 
     def query(self, query: str) -> None:
         printing = query.endswith(';')
@@ -83,7 +103,7 @@ class DataBase(Graph):
 
             elif instruction == 'where':
                 if self.where_clause:
-                    error.ClauseErrorMessage('SELECT', 'WHERE')
+                    error.ClauseSyntaxErrorMessage('SELECT', 'WHERE')
                     return
                 self.where_clause = True
                 variable_1 = query[1]
@@ -97,7 +117,7 @@ class DataBase(Graph):
 
             elif instruction == "and":
                 if not self.where_clause:
-                    error.ClauseErrorMessage('WHERE', 'AND')
+                    error.ClauseSyntaxErrorMessage('WHERE', 'AND')
                     return
                 variable_1 = query[1]
                 operation = query[2]
@@ -112,27 +132,17 @@ class DataBase(Graph):
             elif instruction == 'list':
                 self.list(query[1])
                 self.query(' '.join(query[2:]))
+
+            else:
+                pass
+
         except IndexError:
             return
 
         result = self.last_selection
         if printing:
             self.where_clause = False
-            results_shown = min(len(result), self.env_variables["MAX_RESULTS_SHOWN"])
-            for index in range(results_shown):
-                row_node: Node = result[index]
-                raw_row: Row = row_node.value
-                row_str = raw_row.str_justed_by(
-                    self.env_variables["MIN_VALUE_LENGTH_SHOWN"])
-                row = row_str.replace("'", "")
-                
-                print(f"{index}: {row}".replace('"', "'").strip())
-            results_shown_text = f"{results_shown} results shown"
-            results_hidden_text = f"{len(result) - results_shown} results hidden"
-            print(max(len(results_shown_text), len(results_hidden_text)) * "-")
-            print(results_shown_text)
-            if len(result) > results_shown:
-                print(results_hidden_text)
+            self.print_results(result)
 
     def select(self, number: int | str) -> None:
         result = self.iter(
@@ -149,7 +159,7 @@ class DataBase(Graph):
             self.env_variables[variable.upper()] = value
 
     def template(self, *args) -> None:
-        self.root.value = Row(*args)
+        self.root.value = DataRow(*args)
         print(self.root.value)
 
     def where(self, variable_1: str, operation: str, variable_2: str) -> list:
@@ -197,33 +207,3 @@ class DataBase(Graph):
                 error.TypeErrorMessage(value_1, operation, value_2)
                 return
         self.last_selection = result
-
-
-class Row(LinkedList):
-
-    def __init__(self, *args) -> None:
-        super().__init__()
-        for arg in args:
-            arg = numberize(arg)
-            if type(arg) == str:
-                if "\"" in arg or "\'" in arg:
-                    arg: str = arg.replace("'", "").replace('"', '')
-                else:
-                    continue
-            self.append(arg)
-
-    def __str__(self) -> str:
-        result =  super().__str__()
-        return result.replace(",", " |").replace("[", "").replace("]", "")
-
-    @property
-    def root(self) -> Node:
-        return self.head
-
-    def str_justed_by(self, value) -> str:
-        results = self.iter(
-            (lambda node, index: repr(node.value).ljust(value).replace("'", '"')),
-            (lambda node, index: False)
-        )
-        result = str(results)
-        return result.replace(",", " |").replace("[", "").replace("]", "")
