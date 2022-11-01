@@ -1,7 +1,7 @@
 from __future__ import annotations
 from types import NoneType
 
-from core import iter
+import core.iter as iter
 from core.error import IdError
 from core.node import Node
 
