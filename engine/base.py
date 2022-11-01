@@ -28,6 +28,7 @@ class DataBase(Graph):
             "GET",
             "CREATE",
             "DROP",
+            "GLOBAL",
             ";;" # Print last selection
         ] + self.root.value.defined_clauses))
         self.defined_clauses.sort()
@@ -100,6 +101,9 @@ class DataBase(Graph):
                     self.query(" ".join(query[2:]))
                 elif query[1].lower() == "clauses":
                     print(*self.defined_clauses, sep = "\n")
+                    self.query(" ".join(query[2:]))
+                elif query[1].lower() == "global":
+                    print(*self.global_variables, sep = "\n")
                     self.query(" ".join(query[2:]))
                 else:
                     self.redirect_query(" ".join(query))
