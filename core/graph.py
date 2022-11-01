@@ -94,12 +94,13 @@ class Graph:
 
     def get_parents(self, id: int) -> list:
         results = self.iter(
-            lambda iter_node, index: [index, id in list(iter_node.pointers.keys())]
+            lambda iter_node, index: [index, (id in list(iter_node.pointers.keys()))]
             )
         
         parents = []
         for index in range(len(results)):
             if results[index][1]:
+                print(results[index + 1][0])
                 parent_node = self.use_node(results[index + 1][0])
                 parents.append(parent_node)
 

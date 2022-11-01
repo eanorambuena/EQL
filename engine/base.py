@@ -16,7 +16,7 @@ class DataBase(Graph):
         self.current_table = None
         self.path = path
         self.global_variables = {
-            "NAME": name
+            "NAME": name,
         }
         self.defined_clauses = list(set([
             "CHECKOUT",
@@ -26,6 +26,8 @@ class DataBase(Graph):
             "CLAUSES",
             "LET",
             "GET",
+            "CREATE",
+            "DROP",
             ";;" # Print last selection
         ] + self.root.value.defined_clauses))
         self.defined_clauses.sort()
@@ -39,12 +41,28 @@ class DataBase(Graph):
     def create_table(self, name) -> bool:
         return self.append(self.root.id, DataTable(name))
 
-    def list_tables(self) -> None:
+    def drop_table(self, name: str) -> None:
+        if name not in self.list_tables(False):
+            print(f"Table {name} does not exist\nCurrent tables:")
+            self.list_tables()
+            return
+        table = self.use_table(name)
+        if self.current_table == table:
+            self.current_table = None
+        id = self.id(table)
+        self.root.pointers.pop(id)
+
+    def get_parents(self, id: int) -> list:
+        return [self.root]
+
+    def list_tables(self, printing = True) -> list:
         results = self.iter(
             (lambda node, index: node.value.name),
             (lambda node, index: False)
         )
-        print(*results, sep = "\n")
+        if printing:
+            print(*results, sep = "\n")
+        return results
 
     @property
     def name(self) -> str:
@@ -121,6 +139,14 @@ class DataBase(Graph):
                 elif query[1].upper() in self.global_variables: 
                         print(f"GLOBAL {query[1].upper()} ->",
                             f"{self.global_variables[query[1].upper()]}")
+
+            elif instruction == "create":
+                self.create_table(query[1])
+                self.query(" ".join(query[2:]))
+     
+            elif instruction == "drop":
+                self.drop_table(query[1])
+                self.query(" ".join(query[2:]))
                 
             elif instruction.upper() in self.defined_clauses:
                 self.redirect_query(" ".join(query))
