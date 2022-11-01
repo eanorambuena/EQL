@@ -43,6 +43,9 @@ class DataBase(Graph):
         return self.append(self.root.id, DataTable(name))
 
     def drop_table(self, name: str) -> None:
+        if name == "MainTable":
+            print("Cannot drop MainTable")
+            return
         if name not in self.list_tables(False):
             print(f"Table {name} does not exist\nCurrent tables:")
             self.list_tables()
