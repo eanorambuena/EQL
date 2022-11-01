@@ -10,10 +10,11 @@ from engine.table import DataTable
 
 class DataBase(Graph):
 
-    def __init__(self, name = "MainDataBase") -> None:
+    def __init__(self, path: str, name = "MainDataBase") -> None:
         super().__init__()
         self.root = Node(DataTable())
         self.current_table = None
+        self.path = path
         self.global_variables = {
             "NAME": name
         }
@@ -28,6 +29,12 @@ class DataBase(Graph):
             ";;" # Print last selection
         ] + self.root.value.defined_clauses))
         self.defined_clauses.sort()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.save()
 
     def create_table(self, name) -> bool:
         return self.append(self.root.id, DataTable(name))
@@ -49,9 +56,10 @@ class DataBase(Graph):
         else:
             self.current_table.query(query)
 
-    def save(self, path) -> None:
-        with open(path, "wb") as file:
+    def save(self) -> None:
+        with open(self.path, "wb") as file:
             pickle.dump(self, file)
+        print(f"Database {self.name} saved to {self.path}")
 
     def query(self, query: str) -> None:
         if len(query) == 0:
@@ -133,3 +141,11 @@ class DataBase(Graph):
         if results[-1].value.name == name:
             return results[-1].value
         return self.current_table
+
+def open_database(path: str) -> DataBase:
+    if path[-4:] != ".edb":
+        print("Invalid database file")
+        return None
+
+    with open(path, "rb") as file:
+        return pickle.load(file)
