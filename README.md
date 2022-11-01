@@ -28,8 +28,8 @@ python3 EQL
 ```
 
 ## Quick start
-#### Creating a database
-In this quick start we will import a database from a CSV file. You can just run the following command:
+### Creating a database
+In this quick start, we will import a database from a CSV file. You can just run the following command:
 ```bash
 python3 example.py
 ```
@@ -40,7 +40,7 @@ You will see the following output:
 Database MainDataBase saved to example_data\database.edb
 ```
 
-#### Querying the database
+### Querying the database
 Now that we have a database, we can query it. To do this, we will use the EQL interpreter. To start the interpreter, just run the following command:
 ```bash
 python3 EQL example_data/example.edb
@@ -113,7 +113,7 @@ Now we receive the following output:
 ```
 Now we can see the data from the `medals` table. We can see that we have 2311 results, but we can only see 10. This is because we have a limit of 10 results. We will see how to change this limit later.
 
-## Printing the last selection
+### Printing the last selection
 As we have seen, we can print the data from a selection using the `;` clause. But what if we want to print the data from the last selection?
 In every case, we can use `;` to print the data from the last selection.
 We can also use it as a complete statement, doubling the `;` character.
@@ -137,7 +137,7 @@ In this case, we will print the data from the selection of the last section:
 2301 results hidden
 ```
 The `;;` clause will be useful when we want to print the data from the last selection when we can not simply add the `;` clause to the end of the selection.
-## Global clauses and Env clauses
+#### Global clauses and Env clauses
 There are two types of clauses: Global clauses and Env clauses. Global clauses are used to modify the behavior of the database. Env clauses are used to modify the behavior of the current table. We will see the global clauses first.
 
 When we use a global clause, adding a `;` clause at the end of the statement will not print the data from the last selection. This is because the global clause is not at the environment level, but at the database level. The `;` clause is at the environment level, so it will not print the data from the last selection.
@@ -163,7 +163,7 @@ We will receive the following output:
 10 results shown
 2301 results hidden
 ```
-## Selecting specific rows
+### Selecting specific rows
 We can select specific rows from a table using the `WHERE` clause. The `WHERE` clause is used to filter the data from the table. We can use the `WHERE` clause to select specific rows from the table.
 The syntax of the `WHERE` clause is:
 ```javascript
@@ -225,10 +225,10 @@ Now, we will receive the following output:
 208 results hidden
 ```
 
-## Managing tables
+### Managing tables
 We can manage tables using the `CREATE TABLE`, `DROP TABLE` and `TEMPLATE` statements. The `CREATE TABLE` statement is used to create a new table. The `DROP TABLE` statement is used to delete a table. The `TEMPLATE` statement is used to modify the headers of the columns of a table.
 
-### Creating a table
+#### Creating a table
 We can create a new table using the `CREATE TABLE` statement. The syntax of the `CREATE TABLE` statement is:
 ```javascript
 CREATE TABLE table_name
@@ -238,7 +238,7 @@ For example, if we want to create a new table called `income_table`, we can use 
 CREATE TABLE income_table
 ```
 
-### Managing columns
+#### Managing columns
 We can name or rename the columns of a table using the `TEMPLATE` statement. The syntax of the `TEMPLATE` statement is:
 ```javascript
 TEMPLATE "column_name_1" "column_name_2" "column_name_3" ...
@@ -249,7 +249,7 @@ TEMPLATE "Name" "Age" "Income"
 ```
 Note that we do not need to specify the data type of the columns. The EQL engine will automatically detect the data type of the columns while filtering the data.
 
-### Deleting a table
+#### Deleting a table
 We can delete a table using the `DROP TABLE` statement. The syntax of the `DROP TABLE` statement is:
 ```javascript
 DROP TABLE table_name
@@ -259,7 +259,7 @@ For example, if we want to delete the `income_table` table, we can use the follo
 DROP TABLE income_table
 ```
 
-## Inserting data
+### Inserting data
 We can insert data into a table using the `INSERT` and `VALUES` statements. The `INSERT` statement is used to insert data into a table. The `VALUES` statement is used to specify the values of the columns of the table.
 The syntax of the `INSERT VALUES` statement is:
 ```javascript
@@ -286,7 +286,7 @@ we will receive the following output:
 3 results shown
 ```
 
-## Listing useful commands
+### Listing useful commands
 We can list many useful things using the `LIST` statement. The `LIST` statement is used to list the names, defined clauses and the name of variables. For example, if we want to list the names of the tables, we can use the following statement, as we have seen in a previous section:
 ```javascript
 LIST TABLES
@@ -345,12 +345,12 @@ No table selected
 ```
 We will talk about EQL variables in the next section.
 
-## Using variables
+### Using variables
 In EQL, we can use variables to store data. We can use the `LET` statement to define a global variable. We can use the `SET` statement to define an env variable. 
 
 Global variables are defined for the whole database. Env variables are defined for the current table. We can use the `GET` statement to get the value of a variable. When we use the `GET` statement, the engine first tries to get the value of the variable from the env variables. If the variable is not defined in the env variables, the engine will try to get the value of the variable from the global variables. If the variable is not defined in the global variables, the engine will return nothing. The result of the `GET` statement is often stored as the last selection of the current table.
 
-### Defining or modifying global variables
+#### Defining or modifying global variables
 ```javascript
 CHECKOUT medals
 LET MAX_RESULTS_SHOWN 5
@@ -369,7 +369,7 @@ ENV MAX_RESULTS_SHOWN -> 10
 ```
 Note that the result is different because we are using the `LET` statement, the value of the `MAX_RESULTS_SHOWN` is stored in the global variables, but we are getting the value of the `MAX_RESULTS_SHOWN` variable from the env variables. 
 
-### Defining or modifying env variables
+#### Defining or modifying env variables
 We can modify the value of the `MAX_RESULTS_SHOWN` env variable using the `SET` statement as follows:
 ```javascript
 SET MAX_RESULTS_SHOWN 5
@@ -388,7 +388,7 @@ ENV MAX_RESULTS_SHOWN -> 5
 ```
 Now we can see we have successfully modified the value of the `MAX_RESULTS_SHOWN` env variable!
 
-### Assigning the last selection to a variable
+#### Assigning the last selection to a variable
 We can assign the last selection to a variable using the `LET` or `SET` statement, followed by the name of the variable and the clause `*`. For example, if we want to assign the last selection to the `last_selection` global variable, we can use the following statement:
 ```javascript
 SELECT *
@@ -426,11 +426,15 @@ GLOBAL LAST_SELECTION -> (
 )
 ```
 
-## Exitting and saving the database
+### Exitting and saving the database
 We can use the `EXIT` statement to exit the EQL shell. If we are running a database in a `with` python context, the database will be saved automatically.
 
 If we are running the database with the EQL engine, it saves the database automatically when we use the `EXIT` statement, because it uses the python context manager inside.
 
 ```javascript
 EXIT
+```
+In this example, we will see the following output:
+```bash
+Database MainDataBase saved to example_data\database.edb
 ```
