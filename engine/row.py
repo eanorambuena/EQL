@@ -11,7 +11,7 @@ class DataRow(LinkedList):
             arg = numberize(arg)
             if type(arg) == str:
                 if "\"" in arg or "\'" in arg:
-                    arg: str = arg.replace("'", "").replace('"', '')
+                    arg: str = arg.replace("'", "").replace('"', '').replace("\\", " ")
                 else:
                     continue
             self.append(arg)

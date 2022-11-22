@@ -29,7 +29,8 @@ class DataBase(Graph):
             "CREATE",
             "DROP",
             "GLOBAL",
-            ";;" # Print last selection
+            "BIND"
+            ";;"
         ] + self.root.value.defined_clauses))
         self.defined_clauses.sort()
 
@@ -39,6 +40,46 @@ class DataBase(Graph):
     def __exit__(self, exc_type, exc_value, traceback):
         self.save()
 
+    def bind(self, *table_names) -> None:
+        tables = []
+        for table_name in table_names:
+            if not self.check_table(table_name):
+                return
+            table = self.use_table(table_name)
+            table.select("*")
+            tables.append(table)
+            
+        selections = [table.last_selection for table in tables]
+        selection_sizes = list(map(len, selections))
+        if min(selection_sizes) != max(selection_sizes):
+            print(f"Tables {', '.join(table_names)} must have the same number of rows")
+            return
+
+        template = []
+        for table in tables:
+            for index in range(len(table.root.value)):
+                item = table.root.value[index]
+                template.append(f"'{item}'")
+        self.current_table.template(*template)
+
+        for row_index in range(selection_sizes[0]):
+            items = []
+            for selection in selections:
+                row = selection[row_index].value
+                for index in range(len(row)):
+                    item = row[index]
+                    if type(item) == str:
+                        item = f"'{item}'"
+                    items.append(item)
+            self.current_table.insert(*items)
+
+    def check_table(self, name: str) -> bool:
+        if name not in self.list_tables(False):
+            print(f"Table {name} does not exist\nCurrent tables:")
+            self.list_tables()
+            return False
+        return True
+
     def create_table(self, name) -> bool:
         return self.append(self.root.id, DataTable(name))
 
@@ -46,9 +87,7 @@ class DataBase(Graph):
         if name == "MainTable":
             print("Cannot drop MainTable")
             return
-        if name not in self.list_tables(False):
-            print(f"Table {name} does not exist\nCurrent tables:")
-            self.list_tables()
+        if not self.check_table(name):
             return
         table = self.use_table(name)
         if self.current_table == table:
@@ -88,6 +127,9 @@ class DataBase(Graph):
             return
 
         query = query.split()
+        if len(query) == 0:
+            return
+
         instruction = query[0].lower()
         try:
             if instruction == 'exit':
@@ -154,6 +196,10 @@ class DataBase(Graph):
             elif instruction == "drop":
                 self.drop_table(query[1])
                 self.query(" ".join(query[2:]))
+
+            elif instruction == "bind":
+                self.bind(query[1], query[2])
+                self.query(" ".join(query[3:]))
                 
             elif instruction.upper() in self.defined_clauses:
                 self.redirect_query(" ".join(query))

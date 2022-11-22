@@ -226,16 +226,16 @@ Now, we will receive the following output:
 ```
 
 ### Managing tables
-We can manage tables using the `CREATE TABLE`, `DROP TABLE` and `TEMPLATE` statements. The `CREATE TABLE` statement is used to create a new table. The `DROP TABLE` statement is used to delete a table. The `TEMPLATE` statement is used to modify the headers of the columns of a table.
+We can manage tables using the `CREATE`, `DROP` and `TEMPLATE` statements. The `CREATE` statement is used to create a new table. The `DROP` statement is used to delete a table. The `TEMPLATE` statement is used to modify the headers of the columns of a table.
 
 #### Creating a table
-We can create a new table using the `CREATE TABLE` statement. The syntax of the `CREATE TABLE` statement is:
+We can create a new table using the `CREATE` statement. The syntax of the `CREATE` statement is:
 ```javascript
-CREATE TABLE table_name
+CREATE table_name
 ```
 For example, if we want to create a new table called `income_table`, we can use the following statement:
 ```javascript
-CREATE TABLE income_table
+CREATE income_table
 ```
 
 #### Managing columns
@@ -250,13 +250,13 @@ TEMPLATE "Name" "Age" "Income"
 Note that we do not need to specify the data type of the columns. The EQL engine will automatically detect the data type of the columns while filtering the data.
 
 #### Deleting a table
-We can delete a table using the `DROP TABLE` statement. The syntax of the `DROP TABLE` statement is:
+We can delete a table using the `DROP` statement. The syntax of the `DROP` statement is:
 ```javascript
-DROP TABLE table_name
+DROP table_name
 ```
 For example, if we want to delete the `income_table` table, we can use the following statement:
 ```javascript
-DROP TABLE income_table
+DROP income_table
 ```
 
 ### Inserting data

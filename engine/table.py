@@ -1,4 +1,5 @@
 import sys
+from typing import List
 
 import core.error as error
 from core.graph import Graph
@@ -15,7 +16,7 @@ class DataTable(Graph):
         self.root = Node(DataRow())
         self.preparing_insert = False
         self.where_clause = False
-        self.last_selection = []
+        self.last_selection: List[Node] = []
         self.env_variables = {
             "MAX_RESULTS_SHOWN": 10,
             "MIN_VALUE_LENGTH_SHOWN": 17,
@@ -31,7 +32,7 @@ class DataTable(Graph):
             "VALUES",
             "ENV",
             "CLAUSES",
-            "SET",
+            "SET"
         ]
         self.defined_clauses.sort()
 
@@ -98,7 +99,6 @@ class DataTable(Graph):
                 if self.preparing_insert:
                     self.insert(*query[1:])
                     self.preparing_insert = False
-                self.query(' '.join(query[1:]))
                 return
 
             elif instruction == 'where':
@@ -160,22 +160,52 @@ class DataTable(Graph):
             print(f"ENV {variable.upper()} <- {value}")
 
     def template(self, *args) -> None:
-        self.root.value = DataRow(*args)
+        if len(args) > 0:
+            self.root.value = DataRow(*args)
         print(self.root.value)
 
     def where(self, variable_1: str, operation: str, variable_2: str) -> list:
         result = []
+        row_index = 0
         for row in self.last_selection:
-            index_1 = self.root.value.index(variable_1)
-            index_2 = self.root.value.index(variable_2)
-            if index_1 is None:
-                value_1 = variable_1
+            if "$" not in variable_1:
+                index_1 = self.root.value.index(variable_1)
+                if index_1 is None:
+                    value_1 = variable_1
+                else:
+                    value_1 = row.value[index_1]
             else:
-                value_1 = row.value[index_1]
-            if index_2 is None:
-                value_2 = variable_2
+                keys = variable_1.split("$")
+                table_name = keys[0]
+                variable = keys[1]
+                table: DataTable = self.exposed_tables[table_name]
+                index = table.root.value.index(variable)
+                table.select("*")
+                
+                try:
+                    table_row =  table.last_selection[row_index]
+                    value_1 = table_row.value[index]
+                except IndexError:
+                    value_1 = None
+
+            if "$" not in variable_2:
+                index_2 = self.root.value.index(variable_2)
+                if index_2 is None:
+                    value_2 = variable_2
+                else:
+                    value_2 = row.value[index_2]
             else:
-                value_2 = row.value[index_2]
+                keys = variable_1.split("$")
+                table_name = keys[0]
+                variable = keys[1]
+                table: DataTable = self.exposed_tables[table_name]
+                index = table.root.value.index(variable)
+                table.select("*")
+                try:
+                    table_row =  table.last_selection[row_index]
+                    value_2 = table_row.value[index]
+                except IndexError:
+                    value_2 = None
 
             value_1 = numberize(value_1)
             value_2 = numberize(value_2)
@@ -207,4 +237,5 @@ class DataTable(Graph):
             except TypeError:
                 error.TypeErrorMessage(value_1, operation, value_2)
                 return
+            row_index += 1
         self.last_selection = result

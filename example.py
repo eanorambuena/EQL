@@ -14,11 +14,12 @@ if __name__ == '__main__':
     count = 0
     for line in csvfile:
         if count == 0:
-            template = [
+            template = ["'Match_id'"] + [
                 value.strip().replace(" ", "_") for value in str(line)[1:-1].split(",")
                 ]
         else:
-            csv_content += ",".join([value.strip() for value in str(line)[1:-1].split(",")]) + "\n"
+            csv_content += f"{count}," + ",".join([
+                value.strip() for value in str(line)[1:-1].split(",")]) + "\n"
         count += 1
 
     path = ["example_data", "database.edb"]
