@@ -1,5 +1,6 @@
 import pickle, sys
 from types import NoneType
+from typing import List 
 
 import core.error as error
 from core.graph import Graph
@@ -29,7 +30,9 @@ class DataBase(Graph):
             "CREATE",
             "DROP",
             "GLOBAL",
-            "BIND"
+            "BIND",
+            "AS",
+            "ECHO"
             ";;"
         ] + self.root.value.defined_clauses))
         self.defined_clauses.sort()
@@ -41,7 +44,14 @@ class DataBase(Graph):
         self.save()
 
     def bind(self, *table_names) -> None:
-        tables = []
+        nicks = []
+        if "AS" in table_names:
+            as_index = table_names.index("AS")
+            if 0 < as_index < len(table_names) - 1:
+                nicks = table_names[as_index + 1:]
+                table_names = table_names[:as_index]
+
+        tables: List[DataTable] = []
         for table_name in table_names:
             if not self.check_table(table_name):
                 return
@@ -49,17 +59,22 @@ class DataBase(Graph):
             table.select("*")
             tables.append(table)
             
-        selections = [table.last_selection for table in tables]
+        selections: List[List[Node]] = [table.last_selection for table in tables]
         selection_sizes = list(map(len, selections))
         if min(selection_sizes) != max(selection_sizes):
             print(f"Tables {', '.join(table_names)} must have the same number of rows")
             return
 
         template = []
-        for table in tables:
+        for table_index in range(len(tables)):
+            table = tables[table_index]
+            nick = table.name
+            if table_index < len(nicks):
+                nick = nicks[table_index]
+            
             for index in range(len(table.root.value)):
                 item = table.root.value[index]
-                template.append(f"'{item}'")
+                template.append(f"'{nick}${item}'")
         self.current_table.template(*template)
 
         for row_index in range(selection_sizes[0]):
@@ -198,8 +213,10 @@ class DataBase(Graph):
                 self.query(" ".join(query[2:]))
 
             elif instruction == "bind":
-                self.bind(query[1], query[2])
-                self.query(" ".join(query[3:]))
+                self.bind(*query[1:])
+            
+            elif instruction == "echo":
+                print("\x1b[1;37m" + "#", *query[1:], "\x1b[0;37m")
                 
             elif instruction.upper() in self.defined_clauses:
                 self.redirect_query(" ".join(query))

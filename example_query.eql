@@ -23,5 +23,12 @@ SELECT *;
 
 CREATE person_houses
 CHECKOUT person_houses
-BIND persons houses
+SET MIN_VALUE_LENGTH_SHOWN 7
+BIND persons houses AS p h
 SELECT *;
+
+ECHO Select all persons and houses ordered by the person id_number in ascendent order
+ECHO such that the  person name contains an "a"
+SELECT *
+ORDER p$id_number BY ASC
+WHERE p$name LIKE .*a.*;

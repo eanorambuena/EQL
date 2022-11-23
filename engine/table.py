@@ -1,4 +1,4 @@
-import sys
+import re, sys
 from typing import List
 
 import core.error as error
@@ -15,6 +15,7 @@ class DataTable(Graph):
         self.name = name
         self.root = Node(DataRow())
         self.preparing_insert = False
+        self.preparing_order_index = None
         self.where_clause = False
         self.last_selection: List[Node] = []
         self.env_variables = {
@@ -32,7 +33,10 @@ class DataTable(Graph):
             "VALUES",
             "ENV",
             "CLAUSES",
-            "SET"
+            "SET",
+            "LIKE",
+            "ORDER",
+            "BY"
         ]
         self.defined_clauses.sort()
 
@@ -55,6 +59,20 @@ class DataTable(Graph):
             raw_row = line.split(",")
             row = [value.strip() for value in raw_row]
             self.insert(*row)
+
+    def order(self, column_name: str) -> None:
+        if column_name not in self.root.value:
+            print("Column name not in template: ")
+            return self.template()
+        self.preparing_order_index = self.root.value.index(column_name)
+
+    def order_by(self, method: str) -> None:
+        index  =self.preparing_order_index
+        key = lambda node: node.value[index]
+        if method == "ASC":
+            self.last_selection.sort(key = key)
+        elif method == "DESC":
+            self.last_selection.sort(key = key, reverse = True)
 
     def print_results(self, results: list, identation_level: int = 0) -> None:
         identation = identation_level * "    "
@@ -133,6 +151,16 @@ class DataTable(Graph):
                 self.list(query[1])
                 self.query(' '.join(query[2:]))
 
+            elif instruction == "order":
+                self.order(query[1])
+                self.query(' '.join(query[2:]))
+
+            elif instruction == "by":
+                if self.preparing_order_index is not None:
+                    self.order_by(query[1].upper())
+                    self.preparing_order_index = None
+                self.query(' '.join(query[2:]))
+
             else:
                 pass
 
@@ -166,76 +194,47 @@ class DataTable(Graph):
 
     def where(self, variable_1: str, operation: str, variable_2: str) -> list:
         result = []
-        row_index = 0
         for row in self.last_selection:
-            if "$" not in variable_1:
-                index_1 = self.root.value.index(variable_1)
-                if index_1 is None:
-                    value_1 = variable_1
-                else:
-                    value_1 = row.value[index_1]
+            index_1 = self.root.value.index(variable_1)
+            if index_1 is None:
+                value_1 = variable_1
             else:
-                keys = variable_1.split("$")
-                table_name = keys[0]
-                variable = keys[1]
-                table: DataTable = self.exposed_tables[table_name]
-                index = table.root.value.index(variable)
-                table.select("*")
-                
-                try:
-                    table_row =  table.last_selection[row_index]
-                    value_1 = table_row.value[index]
-                except IndexError:
-                    value_1 = None
+                value_1 = row.value[index_1]
 
-            if "$" not in variable_2:
-                index_2 = self.root.value.index(variable_2)
-                if index_2 is None:
-                    value_2 = variable_2
-                else:
-                    value_2 = row.value[index_2]
+            index_2 = self.root.value.index(variable_2)
+            if index_2 is None:
+                value_2 = variable_2
             else:
-                keys = variable_1.split("$")
-                table_name = keys[0]
-                variable = keys[1]
-                table: DataTable = self.exposed_tables[table_name]
-                index = table.root.value.index(variable)
-                table.select("*")
-                try:
-                    table_row =  table.last_selection[row_index]
-                    value_2 = table_row.value[index]
-                except IndexError:
-                    value_2 = None
+                value_2 = row.value[index_2]
 
             value_1 = numberize(value_1)
             value_2 = numberize(value_2)
+            operation = operation.upper()
 
             if type(value_1) == str:
                 value_1 = value_1.strip().strip("'").strip('"')
-            if type(value_2) == str:
+            if type(value_2) == str and operation != "LIKE":
                 value_2 = value_2.strip().strip("'").strip('"')
 
             try:
                 if operation == '=':
-                    if value_1 == value_2:
-                        result.append(row)
+                    condition =  value_1 == value_2
                 elif operation == '>':
-                    if value_1 > value_2:
-                        result.append(row)
+                    condition =  value_1 > value_2
                 elif operation == '<':
-                    if value_1 < value_2:
-                        result.append(row)
+                    condition =  value_1 < value_2
                 elif operation == '>=':
-                    if value_1 >= value_2:
-                        result.append(row)
+                    condition =  value_1 >= value_2
                 elif operation == '<=':
-                    if value_1 <= value_2:
-                        result.append(row)
+                    condition = value_1 <= value_2
                 elif operation == '!=':
-                    if value_1 != value_2:
-                        result.append(row)
+                    condition = value_1 != value_2
+                elif operation == "LIKE":
+                    condition = re.match(value_2, value_1)
+
+                if condition:
+                    result.append(row)
             except TypeError:
                 error.TypeErrorMessage(value_1, operation, value_2)
                 return
-            row_index += 1
         self.last_selection = result
