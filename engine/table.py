@@ -15,6 +15,7 @@ class DataTable(Graph):
         self.name = name
         self.root = Node(DataRow())
         self.preparing_insert = False
+        self.preparing_update = False
         self.preparing_order_index = None
         self.where_clause = False
         self.last_selection: List[Node] = []
@@ -36,7 +37,8 @@ class DataTable(Graph):
             "SET",
             "LIKE",
             "ORDER",
-            "BY"
+            "BY",
+            "UPDATE"
         ]
         self.defined_clauses.sort()
 
@@ -117,6 +119,9 @@ class DataTable(Graph):
                 if self.preparing_insert:
                     self.insert(*query[1:])
                     self.preparing_insert = False
+                elif self.preparing_update:
+                    self.update(*query[1:])
+                    self.preparing_update = False
                 return
 
             elif instruction == 'where':
@@ -161,6 +166,10 @@ class DataTable(Graph):
                     self.preparing_order_index = None
                 self.query(' '.join(query[2:]))
 
+            elif instruction == "update":
+                self.preparing_update = True
+                self.query(' '.join(query[1:]))
+
             else:
                 pass
 
@@ -191,6 +200,13 @@ class DataTable(Graph):
         if len(args) > 0:
             self.root.value = DataRow(*args)
         print(self.root.value)
+
+    def update(self, *args) -> None:
+        if len(args) != len(self.root.value):
+            error.ArgumentNumberErrorMessage('UPDATE', len(self.root.value), len(args))
+            return
+        for row in self.last_selection:
+            row.value = DataRow(*args)
 
     def where(self, variable_1: str, operation: str, variable_2: str) -> list:
         result = []
@@ -231,6 +247,8 @@ class DataTable(Graph):
                     condition = value_1 != value_2
                 elif operation == "LIKE":
                     condition = re.match(value_2, value_1)
+                else:
+                    condition = False
 
                 if condition:
                     result.append(row)

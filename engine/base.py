@@ -32,7 +32,7 @@ class DataBase(Graph):
             "GLOBAL",
             "BIND",
             "AS",
-            "ECHO"
+            "ECHO",
             ";;"
         ] + self.root.value.defined_clauses))
         self.defined_clauses.sort()

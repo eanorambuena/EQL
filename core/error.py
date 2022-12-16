@@ -33,3 +33,13 @@ class UndefinedClauseErrorMessage(Exception):
 
     def __str__(self) -> str:
         return f"Undefined clause"
+
+class ArgumentNumberErrorMessage():
+    def __init__(self, instruction: str, expected: int, given: int) -> None:
+        self.instruction = instruction.upper()
+        self.expected = expected
+        self.given = given
+        print("ArgumentNumberError:", self)
+
+    def __str__(self) -> str:
+        return f"{self.instruction} expected {self.expected} arguments, got {self.given}"
