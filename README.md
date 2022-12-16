@@ -286,6 +286,56 @@ we will receive the following output:
 3 results shown
 ```
 
+### Updating the data
+We can update data into a table using the `UPDATE` and `VALUES` statements. The `UPDATE` statement is used to update data into a row. The `VALUES` statement is used to specify the values of the columns of the row.
+The syntax of the `IUPDATE VALUES` statement is:
+```javascript
+UPDATE
+VALUES "value_1" "value_2" "value_3" ...
+```
+If we are updating strings, we need to use quotation marks. If we are updating numbers, we must not use quotation marks. For example, let's update some data into the `MainTable` table:
+```javascript
+SELECT *
+WHERE "Name" = "Mary"
+UPDATE
+VALUES "Mary" 30 25000
+```
+We can see that the `MainTable` table has been updated. If we select all the rows of the `MainTable` table using:
+```javascript
+SELECT *;
+```
+we will receive the following output:
+```bash
+0: 'John'            | 25                | 10000
+1: 'Mary'            | 30                | 25000
+2: 'Peter'           | 35                | 30000
+----------------
+3 results shown
+```
+
+### Deleting the data
+We can delete data from a table using the `DELETE` statement. The syntax of the `DELETE` statement is:
+```javascript
+DELETE
+```
+For example, let's delete some data from the `MainTable` table:
+```javascript
+SELECT *
+WHERE "Name" = "Mary"
+DELETE
+```
+We can see that the `MainTable` table has been updated. If we select all the rows of the `MainTable` table using:
+```javascript
+SELECT *;
+```
+we will receive the following output:
+```bash
+0: 'John'            | 25                | 10000
+1: 'Peter'           | 35                | 30000
+----------------
+2 results shown
+```
+
 ### Listing useful commands
 We can list many useful things using the `LIST` statement. The `LIST` statement is used to list the names, defined clauses and the name of variables. For example, if we want to list the names of the tables, we can use the following statement, as we have seen in a previous section:
 ```javascript

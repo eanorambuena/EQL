@@ -42,6 +42,5 @@ ECHO Delete Mary
 SELECT *
 WHERE p$name = "Mary"
 DELETE
-
 SELECT *
 WHERE p$name = "Mary";
