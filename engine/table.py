@@ -38,9 +38,14 @@ class DataTable(Graph):
             "LIKE",
             "ORDER",
             "BY",
-            "UPDATE"
+            "UPDATE",
+            "DELETE"
         ]
         self.defined_clauses.sort()
+
+    def delete(self):
+        for node in self.last_selection:
+            self.remove(node)
 
     def insert(self, *args) -> None:
         self.append(self.root.id, DataRow(*args))
@@ -108,6 +113,7 @@ class DataTable(Graph):
 
             elif instruction == 'select':
                 result = self.select(query[1])
+                self.where_clause = False
                 self.query(' '.join(query[2:]))
 
             elif instruction == 'insert':
@@ -170,6 +176,10 @@ class DataTable(Graph):
                 self.preparing_update = True
                 self.query(' '.join(query[1:]))
 
+            elif instruction == "delete":
+                self.delete()
+                self.query(' '.join(query[1:]))
+
             else:
                 pass
 
@@ -180,6 +190,12 @@ class DataTable(Graph):
         if printing:
             self.where_clause = False
             self.print_results(result)
+
+    def remove(self, node: Node) -> None:
+        for table_node in self.root.pointers.values():
+            if table_node == node:
+                self.root.pointers.pop(node.id)
+                return
 
     def select(self, number: int | str) -> None:
         result = self.iter(

@@ -33,6 +33,15 @@ SELECT *
 ORDER p$id_number BY ASC
 WHERE p$name LIKE .*a.*;
 
+ECHO Update Mary
 SELECT *
 WHERE p$name = "Mary"
 UPDATE VALUES 5 "18765532" "Mary" 28 "1993" 3 5 "Mary\1993";
+
+ECHO Delete Mary
+SELECT *
+WHERE p$name = "Mary"
+DELETE
+
+SELECT *
+WHERE p$name = "Mary";
