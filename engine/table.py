@@ -75,7 +75,7 @@ class DataTable(Graph):
 
     def order_by(self, method: str) -> None:
         index  =self.preparing_order_index
-        key = lambda node: node.value[index]
+        key = lambda node: numberize(node.value[index])
         if method == "ASC":
             self.last_selection.sort(key = key)
         elif method == "DESC":

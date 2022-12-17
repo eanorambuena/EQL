@@ -3,7 +3,7 @@ CREATE persons
 CHECKOUT persons
 TEMPLATE "person_id" "id_number" "name" "age" "birth_year" "match_id"
 INSERT VALUES 1 "14484859" "John" 42 "1980" 34
-INSERT VALUES 2 "19876543" "Jane" 36 "1986" 56
+INSERT VALUES "-1.2" "19876543" "Jane" 36 "1986" 56
 INSERT VALUES 3 "21345678" "Bob" 20 "2002" 4
 INSERT VALUES 4 "12345678" "Alice" 52 "1969" 343
 INSERT VALUES 5 "18765432" "Mary" 28 "1993" 3
@@ -27,18 +27,18 @@ SET MIN_VALUE_LENGTH_SHOWN 7
 BIND persons houses AS p h
 SELECT *;
 
-ECHO Select all persons and houses ordered by the person id_number in ascendent order
+ECHO \Select all persons and houses ordered by the person id_number in ascendent order
 ECHO such that the  person name contains an "a"
 SELECT *
 ORDER p$id_number BY ASC
 WHERE p$name LIKE .*a.*;
 
-ECHO Update Mary
+ECHO \Update Mary
 SELECT *
 WHERE p$name = "Mary"
 UPDATE VALUES 5 "18765532" "Mary" 28 "1993" 3 5 "Mary\1993";
 
-ECHO Delete Mary
+ECHO \Delete Mary
 SELECT *
 WHERE p$name = "Mary"
 DELETE

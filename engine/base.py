@@ -1,4 +1,4 @@
-import pickle, sys
+import pickle, re, sys
 from types import NoneType
 from typing import List 
 
@@ -126,6 +126,9 @@ class DataBase(Graph):
     def name(self) -> str:
         return self.global_variables["NAME"]
 
+    def parse_expression(self, value: str) -> str:
+        return value
+
     def redirect_query(self, query: str) -> None:
         if self.current_table is None:
             print("No table selected")
@@ -169,9 +172,10 @@ class DataBase(Graph):
                     self.redirect_query(" ".join(query))
 
             elif instruction == "let":
-                if query[2] != "*":
-                    self.global_variables[query[1].upper()] = query[2]
-                    print(f"GLOBAL {query[1].upper()} <- {query[2]}")
+                value = self.parse_expression(query[2])
+                if value != "*":
+                    self.global_variables[query[1].upper()] = value
+                    print(f"GLOBAL {query[1].upper()} <- {value}")
                 elif self.current_table is None:
                     print("No table selected")
                 else:
@@ -216,7 +220,8 @@ class DataBase(Graph):
                 self.bind(*query[1:])
             
             elif instruction == "echo":
-                print("\x1b[1;37m" + "#", *query[1:], "\x1b[0;37m")
+                content = " ".join(query[1:])
+                print("\x1b[1;37m", content.replace("\\", "\n"), "\x1b[0;37m")
                 
             elif instruction.upper() in self.defined_clauses:
                 self.redirect_query(" ".join(query))

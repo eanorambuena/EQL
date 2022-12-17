@@ -1,0 +1,11 @@
+create people
+echo "Tables:"
+list tables
+
+checkout people
+echo "\people:"
+select *;
+
+let A = 25
+let B = A + 3
+echo "I'm $A and Mary is $B"
